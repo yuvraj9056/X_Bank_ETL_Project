@@ -1,0 +1,47 @@
+resources:
+  jobs:
+    X_Bank_Master_Job:
+      name: X_Bank_Master_Job
+      tasks:
+        - task_key: Source_to_Silver_Blob
+          run_job_task:
+            job_id: 420488907074288
+            job_parameters:
+              run_id: "{{job.run_id}}"
+              source_system: blob
+        - task_key: Source_to_Silver_SqlServer
+          run_job_task:
+            job_id: 420488907074288
+            job_parameters:
+              run_id: "{{job.run_id}}"
+              source_system: sqlserver
+        - task_key: Silver_to_Gold
+          depends_on:
+            - task_key: Source_to_Silver_Blob
+            - task_key: Source_to_Silver_SqlServer
+          run_if: ALL_DONE
+          run_job_task:
+            job_id: 750930123757345
+            job_parameters:
+              run_id: "{{job.run_id}}"
+          email_notifications:
+            on_success:
+              - ranayuvrajsingh1111@gmail.com
+            on_failure:
+              - ranayuvrajsingh1111@gmail.com
+        - task_key: X_Bank_Dashboard_Refresh
+          depends_on:
+            - task_key: Silver_to_Gold
+          run_if: ALL_DONE
+          dashboard_task:
+            subscription:
+              attachment:
+                page_attachment: {}
+            dashboard_id: 01f1e24107681780aec378e90d68a9ef
+          email_notifications:
+            on_success:
+              - ranayuvrajsingh1111@gmail.com
+            on_failure:
+              - ranayuvrajsingh1111@gmail.com
+      queue:
+        enabled: true

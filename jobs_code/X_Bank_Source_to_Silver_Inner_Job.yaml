@@ -1,0 +1,34 @@
+resources:
+  jobs:
+    X_Bank_Source_to_Silver_Inner_Job:
+      name: X_Bank_Source_to_Silver_Inner_Job
+      max_concurrent_runs: 4
+      tasks:
+        - task_key: Get_List_of_Parameters
+          notebook_task:
+            notebook_path: /Workspace/Users/ranayuvrajsingh1111@gmail.com/banking_etl_project/02_Source_to_Silver/02_Read_Table_Parameters
+            source: WORKSPACE
+        - task_key: Source_to_Bronze_Ingestion
+          depends_on:
+            - task_key: Get_List_of_Parameters
+          notebook_task:
+            notebook_path: /Workspace/Users/ranayuvrajsingh1111@gmail.com/banking_etl_project/02_Source_to_Silver/03_Source_to_Bronze
+            base_parameters:
+              table_parameters: "{{tasks.Get_List_of_Parameters.values.table_parameters}}"
+            source: WORKSPACE
+        - task_key: Bronze_to_Silver_Ingestion
+          depends_on:
+            - task_key: Source_to_Bronze_Ingestion
+          notebook_task:
+            notebook_path: /Workspace/Users/ranayuvrajsingh1111@gmail.com/banking_etl_project/02_Source_to_Silver/04_Bronze_to_Silver
+            base_parameters:
+              table_parameters: "{{tasks.Get_List_of_Parameters.values.table_parameters}}"
+            source: WORKSPACE
+      queue:
+        enabled: true
+      parameters:
+        - name: run_id
+          default: ""
+        - name: table_metadata
+          default: ""
+      performance_target: PERFORMANCE_OPTIMIZED

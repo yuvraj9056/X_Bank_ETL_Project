@@ -1,0 +1,29 @@
+resources:
+  jobs:
+    X_Bank_Source_to_Silver:
+      name: X_Bank_Source_to_Silver
+      max_concurrent_runs: 4
+      tasks:
+        - task_key: Get_List_of_Tables
+          notebook_task:
+            notebook_path: /Workspace/Users/ranayuvrajsingh1111@gmail.com/banking_etl_project/02_Source_to_Silver/01_Read_Tables_list
+            source: WORKSPACE
+        - task_key: Source_to_Silver_Ingestion
+          depends_on:
+            - task_key: Get_List_of_Tables
+          for_each_task:
+            inputs: "{{tasks.Get_List_of_Tables.values.tables_metadata}}"
+            task:
+              task_key: Source_to_Silver_Ingestion_iteration
+              run_job_task:
+                job_id: 416716670386408
+                job_parameters:
+                  table_metadata: "{{input}}"
+      queue:
+        enabled: true
+      parameters:
+        - name: run_id
+          default: "12345"
+        - name: source_system
+          default: blob
+      performance_target: PERFORMANCE_OPTIMIZED
